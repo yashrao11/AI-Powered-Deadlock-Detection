@@ -1,20 +1,19 @@
 from pyvis.network import Network
 import networkx as nx
 
-def visualize_interactive_rag(graph, deadlock_cycle=None):
-    net = Network(notebook=False, height="500px", width="100%", bgcolor="#222222", font_color="white")
-    
-    # Add nodes and edges
-    for node in graph.nodes:
-        color = "lightblue" if node.startswith("P") else "lightcoral"
-        net.add_node(node, label=node, color=color)
+def draw_graph(graph_edges, output_html="graph.html"):
+    """
+    Draws a directed graph using Pyvis and saves it as an HTML file.
 
-    for edge in graph.edges:
-        net.add_edge(edge[0], edge[1])
+    :param graph_edges: List of tuples representing edges in the graph.
+    :param output_html: Output file name (default: 'graph.html').
+    """
+    G = nx.DiGraph()
 
-    # Highlight deadlock cycle (if any)
-    if deadlock_cycle:
-        for i in range(len(deadlock_cycle)):
-            net.add_edge(deadlock_cycle[i], deadlock_cycle[(i + 1) % len(deadlock_cycle)], color="red", width=3)
+    # Add edges
+    for edge in graph_edges:
+        G.add_edge(edge[0], edge[1])
 
-    net.show("templates/interactive_graph.html")
+    net = Network(height="500px", width="100%", directed=True)
+    net.from_nx(G)
+    net.show(output_html)

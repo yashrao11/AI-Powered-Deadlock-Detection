@@ -1,34 +1,33 @@
 import networkx as nx
 
-def detect_deadlock(graph):
+def detect_deadlock(edges):
     """
-    Detects a cycle in the given directed graph.
-    If a cycle is found, it indicates a deadlock.
-    
-    :param graph: NetworkX directed graph (DiGraph)
-    :return: List representing the deadlock cycle, or None if no deadlock
+    Detects deadlocks in a resource allocation graph.
+
+    :param edges: List of tuples representing process-resource relationships.
+    :return: Tuple (deadlock_detected, cycles) where:
+             - deadlock_detected (bool): True if a cycle (deadlock) is found.
+             - cycles (list): List of cycles detected in the graph.
     """
+    graph = nx.DiGraph()  # Create a directed graph
+    graph.add_edges_from(edges)  # Add edges from the input list
+
     try:
-        cycle = nx.find_cycle(graph, orientation="original")
-        return [node for node, _, _ in cycle]  # Extract only node names from cycle
+        cycle = nx.find_cycle(graph, orientation="original")  # Detect cycles
+        return True, cycle  # Deadlock detected
     except nx.NetworkXNoCycle:
-        return None  # No deadlock detected
+        return False, []  # No deadlock
 
-def suggest_deadlock_solution(graph, cycle):
+def suggest_deadlock_solution(cycles):
     """
-    Suggests a possible fix for resolving the detected deadlock.
-    
-    :param graph: NetworkX directed graph (DiGraph)
-    :param cycle: List of nodes forming the deadlock cycle
-    :return: String message suggesting a possible fix
+    Suggests solutions for detected deadlocks.
+
+    :param cycles: List of cycles detected in the graph.
+    :return: List of suggested solutions.
     """
-    if not cycle:
-        return "No deadlock detected."
+    solutions = []
+    for cycle in cycles:
+        process, resource = cycle[0]  # Get first process-resource in cycle
+        solutions.append(f"Terminate process {process} to break deadlock.")
 
-    # Strategy: Suggest releasing one of the locked resources in the cycle
-    for node in cycle:
-        if "R" in node:  # Identify resources in the cycle
-            return f"🔄 Consider releasing Resource '{node}' to break the deadlock."
-
-    return "❗ Deadlock detected, but no immediate resolution found. Consider terminating a process."
-
+    return solutions if solutions else ["No deadlock resolution needed."]
