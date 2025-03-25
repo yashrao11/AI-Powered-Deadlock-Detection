@@ -1,16 +1,20 @@
-import matplotlib.pyplot as plt
+from pyvis.network import Network
 import networkx as nx
 
-def visualize_rag(graph, deadlock_cycle=None):
-    """Visualizes the Resource Allocation Graph with deadlocks highlighted."""
-    pos = nx.spring_layout(graph)
+def visualize_interactive_rag(graph, deadlock_cycle=None):
+    net = Network(notebook=False, height="500px", width="100%", bgcolor="#222222", font_color="white")
+    
+    # Add nodes and edges
+    for node in graph.nodes:
+        color = "lightblue" if node.startswith("P") else "lightcoral"
+        net.add_node(node, label=node, color=color)
 
-    # Draw all nodes
-    nx.draw(graph, pos, with_labels=True, node_size=1000, node_color="lightblue", font_size=10)
+    for edge in graph.edges:
+        net.add_edge(edge[0], edge[1])
 
-    # Highlight deadlock nodes if a cycle exists
+    # Highlight deadlock cycle (if any)
     if deadlock_cycle:
-        deadlock_nodes = set(node for edge in deadlock_cycle for node in edge[:2])
-        nx.draw_networkx_nodes(graph, pos, nodelist=deadlock_nodes, node_color="red")
+        for i in range(len(deadlock_cycle)):
+            net.add_edge(deadlock_cycle[i], deadlock_cycle[(i + 1) % len(deadlock_cycle)], color="red", width=3)
 
-    plt.show()
+    net.show("templates/interactive_graph.html")
