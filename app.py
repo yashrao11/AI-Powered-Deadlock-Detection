@@ -1,7 +1,6 @@
 import streamlit as st
 import networkx as nx
 import json
-from src.deadlock import detect_deadlock
 from src.visualization import visualize_interactive_rag
 import sys
 import os
