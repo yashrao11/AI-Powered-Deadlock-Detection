@@ -6,8 +6,11 @@ from src.visualization import visualize_interactive_rag
 import sys
 import os
 
+# Get the absolute path of the current directory
 sys.path.append(os.path.abspath("src"))
-from src.deadlock import detect_deadlock, suggest_deadlock_solution
+
+from deadlock import detect_deadlock, suggest_deadlock_solution
+
 
 # Predefined graphs for quick testing
 predefined_graphs = {
