@@ -1,58 +1,60 @@
-import streamlit as st
-import networkx as nx
-import json
-from src.visualization import visualize_interactive_rag
 import sys
 import os
+import streamlit as st
+import networkx as nx
+import matplotlib.pyplot as plt
 
-# Get the absolute path of the current directory
+# Ensure the 'src' directory is in the Python path
 sys.path.append(os.path.abspath("src"))
 
-from deadlock import detect_deadlock, suggest_deadlock_solution
+try:
+    from deadlock import detect_deadlock, suggest_deadlock_solution
+except ImportError:
+    st.error("⚠️ ImportError: Could not import 'deadlock.py' from 'src/'. Ensure the file exists and is correctly structured.")
+    sys.exit(1)
 
-
-# Predefined graphs for quick testing
-predefined_graphs = {
-    "No Deadlock": [("P1", "R1"), ("R1", "P2"), ("P2", "R3")],
-    "Deadlock Example": [("P1", "R1"), ("R1", "P2"), ("P2", "R2"), ("R2", "P3"), ("P3", "R1")],
-    "Complex Deadlock": [("P1", "R1"), ("P2", "R2"), ("R1", "P2"), ("R2", "P1")]
-}
-
-# Streamlit UI Setup
-st.set_page_config(page_title="AI-Powered Deadlock Detection", layout="wide")
-
+# Streamlit UI
 st.title("🔍 AI-Powered Deadlock Detection")
-st.write("An interactive tool to visualize and detect deadlocks in resource allocation graphs.")
 
-# Sidebar for Graph Input
-st.sidebar.header("Graph Input Options")
-selected_graph = st.sidebar.selectbox("Select a predefined scenario:", list(predefined_graphs.keys()))
-graph_edges = predefined_graphs[selected_graph]
+st.write("""
+### How It Works:
+- Enter the processes and resources.
+- The system will analyze for deadlocks.
+- If a deadlock is found, it will suggest possible solutions.
+""")
 
-# Create Graph
-G = nx.DiGraph()
-G.add_edges_from(graph_edges)
+# User Input
+st.subheader("➕ Enter Edges (Process → Resource or Resource → Process)")
+edges_input = st.text_area("Enter edges as comma-separated tuples", "('P1', 'R1'), ('R1', 'P2'), ('P2', 'R3')")
 
-# Detect Deadlock
-deadlock_cycle = detect_deadlock(G)
+if st.button("Detect Deadlock"):
+    try:
+        # Convert input string to a list of tuples
+        edges = eval(f"[{edges_input}]")  # Safe conversion
+        
+        # Create a directed graph
+        G = nx.DiGraph()
+        G.add_edges_from(edges)
 
-# Show Results
-st.subheader("🛠 Deadlock Detection Result")
-if deadlock_cycle:
-    st.error(f"🔴 Deadlock Detected! Cycle: {deadlock_cycle}")
-    suggestion = suggest_deadlock_solution(deadlock_cycle)
-    st.warning(f"💡 Suggested Fix: {suggestion}")
-else:
-    st.success("✅ No Deadlock Detected.")
+        # Detect deadlock
+        deadlock_cycle = detect_deadlock(G)
 
-# Show Interactive Graph
-st.subheader("📊 Resource Allocation Graph")
-visualize_interactive_rag(G, deadlock_cycle)
-st.components.v1.html(open("templates/interactive_graph.html", "r").read(), height=550)
+        if deadlock_cycle:
+            st.error(f"🚨 Deadlock Detected! Cycle: {deadlock_cycle}")
+            
+            # Suggest solution
+            fix_suggestion = suggest_deadlock_solution(G, deadlock_cycle)
+            st.warning(f"🛠 Suggested Fix: {fix_suggestion}")
+        else:
+            st.success("✅ No Deadlock Detected!")
 
-# Graph Export & Sharing
-graph_json = json.dumps(graph_edges)
-st.download_button("📥 Download Graph", graph_json, "graph.json", "application/json")
+        # Visualizing the graph
+        st.subheader("🔗 Resource Allocation Graph")
+        plt.figure(figsize=(8, 5))
+        pos = nx.spring_layout(G)
+        nx.draw(G, pos, with_labels=True, node_size=1000, node_color="lightblue", font_size=12, edge_color="gray")
+        st.pyplot(plt)
 
-shareable_link = f"https://ai-powered-deadlock-detection.app/?graph={graph_json}"
-st.markdown(f"🔗 **[Share this Graph]({shareable_link})**", unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"❌ Error: {e}")
+
