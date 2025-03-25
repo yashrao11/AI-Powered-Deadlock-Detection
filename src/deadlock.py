@@ -1,9 +1,4 @@
-import networkx as nx
-
-def detect_deadlock(graph):
-    """Detects deadlock by checking for cycles in the Resource Allocation Graph."""
-    try:
-        cycle = nx.find_cycle(graph, orientation="original")  # Detects cycles
-        return cycle  # Deadlock found
-    except nx.NetworkXNoCycle:
-        return None  # No deadlock
+def suggest_deadlock_solution(deadlock_cycle):
+    if deadlock_cycle:
+        return f"Consider terminating {deadlock_cycle[0]} or manually releasing {deadlock_cycle[-1]}"
+    return "No action needed."
