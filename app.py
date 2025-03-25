@@ -1,60 +1,61 @@
-import sys
-import os
 import streamlit as st
 import networkx as nx
 import matplotlib.pyplot as plt
+import ast
+import os
+import sys
 
-# Ensure the 'src' directory is in the Python path
+# Ensure src module is accessible
 sys.path.append(os.path.abspath("src"))
 
-try:
-    from deadlock import detect_deadlock, suggest_deadlock_solution
-except ImportError:
-    st.error("⚠️ ImportError: Could not import 'deadlock.py' from 'src/'. Ensure the file exists and is correctly structured.")
-    sys.exit(1)
+# Import deadlock detection functions
+from src.deadlock import detect_deadlock, suggest_deadlock_solution
+from src.visualization import draw_graph
 
 # Streamlit UI
-st.title("🔍 AI-Powered Deadlock Detection")
+st.title("🔗 AI-Powered Deadlock Detection System")
 
-st.write("""
-### How It Works:
-- Enter the processes and resources.
-- The system will analyze for deadlocks.
-- If a deadlock is found, it will suggest possible solutions.
+st.markdown("""
+### 🎯 **How to Use:**
+1. **Enter the Graph Edges** as a list of tuples, e.g., `[("P1", "R1"), ("R1", "P2"), ("P2", "R3")]`
+2. **Click "Detect Deadlock"** to analyze the resource allocation.
+3. **View Results** - The system will check for deadlock & suggest fixes.
+4. **Visualize Graph** - See how processes & resources interact.
 """)
 
-# User Input
-st.subheader("➕ Enter Edges (Process → Resource or Resource → Process)")
-edges_input = st.text_area("Enter edges as comma-separated tuples", "('P1', 'R1'), ('R1', 'P2'), ('P2', 'R3')")
+# User input for resource allocation graph
+graph_input = st.text_area("📝 Enter Graph Edges:", "[('P1', 'R1'), ('R1', 'P2'), ('P2', 'R3')]")
 
-if st.button("Detect Deadlock"):
-    try:
-        # Convert input string to a list of tuples
-        edges = eval(f"[{edges_input}]")  # Safe conversion
-        
-        # Create a directed graph
-        G = nx.DiGraph()
-        G.add_edges_from(edges)
+# Convert input to list of tuples
+try:
+    graph_edges = ast.literal_eval(graph_input)
+    if not isinstance(graph_edges, list) or not all(isinstance(edge, tuple) and len(edge) == 2 for edge in graph_edges):
+        st.error("⚠️ Invalid input format! Enter a list of (Process, Resource) tuples.")
+        st.stop()
+except Exception:
+    st.error("⚠️ Could not parse input. Ensure it's a valid list of tuples.")
+    st.stop()
 
-        # Detect deadlock
-        deadlock_cycle = detect_deadlock(G)
+# Button to detect deadlock
+if st.button("🚀 Detect Deadlock"):
+    deadlock_detected, cycle = detect_deadlock(graph_edges)
 
-        if deadlock_cycle:
-            st.error(f"🚨 Deadlock Detected! Cycle: {deadlock_cycle}")
-            
-            # Suggest solution
-            fix_suggestion = suggest_deadlock_solution(G, deadlock_cycle)
-            st.warning(f"🛠 Suggested Fix: {fix_suggestion}")
+    if deadlock_detected:
+        st.error(f"❌ Deadlock detected! 🔄 Cycle: {cycle}")
+
+        # Suggest solution
+        solution = suggest_deadlock_solution(graph_edges)
+        if solution:
+            st.success(f"💡 Suggested Fix: {solution}")
         else:
-            st.success("✅ No Deadlock Detected!")
+            st.warning("⚠️ No automatic fix available. Consider modifying the graph manually.")
+    else:
+        st.success("✅ No deadlock detected.")
 
-        # Visualizing the graph
-        st.subheader("🔗 Resource Allocation Graph")
-        plt.figure(figsize=(8, 5))
-        pos = nx.spring_layout(G)
-        nx.draw(G, pos, with_labels=True, node_size=1000, node_color="lightblue", font_size=12, edge_color="gray")
-        st.pyplot(plt)
+    # Visualize Graph
+    st.subheader("📊 Resource Allocation Graph")
+    draw_graph(graph_edges)
 
-    except Exception as e:
-        st.error(f"❌ Error: {e}")
-
+# Footer
+st.markdown("---")
+st.markdown("👨‍💻 Developed by [Your Name] | 🔗 [GitHub](https://github.com/your-repo)")
