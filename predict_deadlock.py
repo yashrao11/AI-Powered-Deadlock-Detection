@@ -40,7 +40,34 @@ def predict_and_visualize(graph_edges):
     # Visualize the graph
     visualize_rag(graph_edges, prediction == 1)
 
-# Example: Testing the model with a new graph
-test_graph = "[('P1', 'R1'), ('R1', 'P2'), ('P2', 'R2'), ('R2', 'P3'), ('P3', 'R1')]"  # Deadlock example
-graph_edges = ast.literal_eval(test_graph)
-predict_and_visualize(graph_edges)
+# Function to run multiple test cases
+def run_tests():
+    test_cases = {
+        "Deadlock Case": "[('P1', 'R1'), ('R1', 'P2'), ('P2', 'R2'), ('R2', 'P3'), ('P3', 'R1')]",
+        "No Deadlock Case": "[('P1', 'R1'), ('R1', 'P2'), ('P2', 'R2')]"
+    }
+
+    for name, test_graph in test_cases.items():
+        print(f"\n🔹 Running test: {name}")
+        graph_edges = ast.literal_eval(test_graph)
+        predict_and_visualize(graph_edges)
+
+# Main function for user input
+def main():
+    print("\n🔹 AI-Powered Deadlock Detection System 🔹")
+    choice = input("Do you want to enter a custom graph? (yes/no): ").strip().lower()
+
+    if choice == "yes":
+        user_graph = input("Enter the graph as a list of edges (e.g., [('P1', 'R1'), ('R1', 'P2')]): ")
+        try:
+            graph_edges = ast.literal_eval(user_graph)
+            predict_and_visualize(graph_edges)
+        except (SyntaxError, ValueError):
+            print("❌ Invalid input format. Please enter a valid list of tuples.")
+    else:
+        print("\n🔹 Running predefined test cases...")
+        run_tests()
+
+# Run the program
+if __name__ == "__main__":
+    main()
