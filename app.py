@@ -26,7 +26,7 @@ def main():
     st.title("🛠️ AI-Powered Deadlock Detection")
 
     st.write("### Enter process-resource relationships:")
-    edges_input = st.text_input("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", "")
+    edges_input = st.text_area("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", "", height=150)
 
     if st.button("Detect Deadlocks"):
         if not edges_input.strip():
@@ -39,7 +39,8 @@ def main():
             return
 
         # Detect Deadlocks
-        deadlocks = detect_all_deadlocks(edges)
+        with st.spinner("🔍 Detecting deadlocks..."):
+            deadlocks = detect_all_deadlocks(edges)
 
         if deadlocks:
             st.error(f"⚠️ Deadlocks detected! {len(deadlocks)} cycles found:")
@@ -55,11 +56,14 @@ def main():
             st.success("✅ No deadlocks detected")
 
         # Render Graph
-        try:
-            output_html = draw_graph(edges)
-            st.components.v1.html(output_html, height=600, scrolling=True)
-        except Exception as e:
-            st.error(f"An error occurred while rendering the graph: {e}")
+        if len(edges) < 20:  # Limit rendering for large graphs
+            try:
+                output_html = draw_graph(edges)
+                st.components.v1.html(output_html, height=600, scrolling=True)
+            except Exception as e:
+                st.error(f"An error occurred while rendering the graph: {e}")
+        else:
+            st.warning("⚠️ Too many nodes! Graph rendering is disabled for large inputs.")
 
 if __name__ == "__main__":
     main()
