@@ -1,11 +1,14 @@
 import sys
 import os
 import streamlit as st
-from deadlock import detect_all_deadlocks, suggest_deadlock_solution
-from visualization import draw_graph
 
-# Ensure src directory is in Python path
-sys.path.append(os.path.abspath("src"))
+# Ensure 'src' directory is in Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "src")))
+
+# Now import modules
+from src.deadlock import detect_all_deadlocks, suggest_deadlock_solution
+from src.visualization import draw_graph
+
 
 def parse_edges(edges_input):
     """Parses input edges in both 'P1 R1, P2 R2' and 'P1R1, P2R2' formats."""
