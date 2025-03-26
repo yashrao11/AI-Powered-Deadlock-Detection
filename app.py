@@ -1,32 +1,40 @@
 import streamlit as st
+import networkx as nx
+from src.deadlock import detect_deadlock
 from src.visualization import draw_graph
-from src.deadlock import detect_deadlock, suggest_deadlock_solution
 
 def main():
-    st.title("AI-Powered Deadlock Detection")
+    st.title("🛠️ AI-Powered Deadlock Detection")
 
-    st.write("Enter process-resource relationships:")
-    
-    input_text = st.text_area("Enter edges (format: P1 R1, P2 R2, P2 R1, ...)", "")
+    st.write("### Enter process-resource relationships:")
+    edges_input = st.text_input("Enter edges (format: P1 R1, P2 R2, ...)", "")
 
     if st.button("Detect Deadlock"):
-        edges = [tuple(edge.strip().split()) for edge in input_text.split(",") if edge.strip()]
+        if not edges_input.strip():
+            st.error("Please enter at least one process-resource relationship.")
+            return
         
-        if not edges:
-            st.error("Please enter valid edges!")
+        # Process input
+        try:
+            edges = [tuple(edge.strip().split()) for edge in edges_input.split(",")]
+        except Exception:
+            st.error("Invalid input format. Please enter in the correct format: P1 R1, P2 R2, ...")
             return
 
+        # Detect Deadlock
         deadlock_detected, cycles = detect_deadlock(edges)
 
         if deadlock_detected:
-            st.error("Deadlock detected! 🔴")
-            st.write(f"Cycles: {cycles}")
-            st.write("Suggested solutions:")
-            st.write(suggest_deadlock_solution(cycles))
+            st.error(f"⚠️ Deadlock detected! Cycle found: {cycles}")
         else:
-            st.success("No deadlock detected ✅")
+            st.success("✅ No deadlock detected")
 
-        draw_graph(edges)
+        # Render Graph
+        try:
+            output_html = draw_graph(edges)
+            st.components.v1.html(output_html, height=600, scrolling=True)
+        except Exception as e:
+            st.error(f"An error occurred while rendering the graph: {e}")
 
 if __name__ == "__main__":
     main()
