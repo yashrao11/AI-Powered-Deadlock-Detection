@@ -3,17 +3,23 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Ensure 'src' directory is in Python path
+# Get absolute path of the `src` directory
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(CURRENT_DIR, "src")
-sys.path.insert(0, SRC_DIR)  # Ensure Python can find src
 
-# Now import modules correctly
-from deadlock import detect_all_deadlocks
-from visualization import draw_graph
+# Ensure Python finds the `src` directory
+sys.path.append(SRC_DIR)
+
+# Now import modules
+try:
+    from deadlock import detect_all_deadlocks
+    from visualization import draw_graph
+except ImportError as e:
+    st.error(f"🚨 Import Error: {e}. Check if 'src/' exists and contains 'deadlock.py'.")
+    st.stop()
 
 def parse_edges(edges_input):
-    """Parses input edges in both 'a b, b c' and 'ab, bc' formats."""
+    """Parses input edges in both 'A B, B C' and 'AB, BC' formats."""
     edges = []
     for edge in edges_input.split(","):
         edge = edge.strip()
@@ -47,7 +53,7 @@ def main():
             st.error("❌ Invalid input format. Please enter in the correct format.")
             return
 
-        # Detect Deadlocks (Finding all possible cycles)
+        # Detect Deadlocks
         deadlocks = detect_all_deadlocks(edges)
 
         if deadlocks:
