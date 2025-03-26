@@ -4,11 +4,13 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # Ensure 'src' directory is in Python path
-sys.path.append(os.path.abspath("src"))
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_DIR = os.path.join(CURRENT_DIR, "src")
+sys.path.insert(0, SRC_DIR)  # Ensure Python can find src
 
-# Import modules with explicit relative path
-from src.deadlock import detect_all_deadlocks
-from src.visualization import draw_graph
+# Now import modules correctly
+from deadlock import detect_all_deadlocks
+from visualization import draw_graph
 
 def parse_edges(edges_input):
     """Parses input edges in both 'a b, b c' and 'ab, bc' formats."""
