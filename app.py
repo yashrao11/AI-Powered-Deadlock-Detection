@@ -3,19 +3,16 @@ import os
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Get absolute path of the `src` directory
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-SRC_DIR = os.path.join(CURRENT_DIR, "src")
-
-# Ensure Python finds the `src` directory
-sys.path.append(SRC_DIR)
+# Manually set the correct path for src
+SRC_DIR = r"C:\Users\DC\Desktop\ONgoing Stuff\CSE316 - OPERATING SYSTEMS\PROJECT\AI-Powered-Deadlock-Detection\src"
+sys.path.append(SRC_DIR)  # Add src to Python path
 
 # Now import modules
 try:
     from deadlock import detect_all_deadlocks
     from visualization import draw_graph
 except ImportError as e:
-    st.error(f"🚨 Import Error: {e}. Check if 'src/' exists and contains 'deadlock.py'.")
+    st.error(f"🚨 Import Error: {e}\n❌ Check if 'src/' exists and contains 'deadlock.py'.")
     st.stop()
 
 def parse_edges(edges_input):
