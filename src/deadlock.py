@@ -1,21 +1,25 @@
 import networkx as nx
 
-def detect_deadlock(edges):
-    graph = nx.DiGraph()  # Ensure it's a directed graph
+def detect_all_deadlocks(edges):
+    """
+    Detects all deadlocks (cycles) in the given process-resource graph.
 
-    for edge in edges:
-        u, v = edge
-        if u == v:
-            return True, [[u, v]]  # Self-loop is a deadlock
+    :param edges: List of tuples representing process-resource relationships.
+    :return: List of detected cycles (deadlocks).
+    """
+    graph = nx.DiGraph()  # Directed graph for process-resource allocation
+    graph.add_edges_from(edges)
 
-        graph.add_edge(u, v)
-
+    deadlocks = []
+    
     try:
-        cycle = nx.find_cycle(graph, orientation="original")
-        return True, cycle  # Deadlock detected
+        # Find all cycles in the graph
+        cycles = list(nx.simple_cycles(graph))
+        deadlocks.extend(cycles)
     except nx.NetworkXNoCycle:
-        return False, []  # No deadlock
+        pass  # No cycles found, so no deadlocks
 
+    return deadlocks
 
 def suggest_deadlock_solution(cycles):
     """
@@ -26,7 +30,7 @@ def suggest_deadlock_solution(cycles):
     """
     solutions = []
     for cycle in cycles:
-        process, resource = cycle[0]  # Get first process-resource in cycle
+        process = cycle[0]  # Get first process in cycle
         solutions.append(f"Terminate process {process} to break deadlock.")
 
     return solutions if solutions else ["No deadlock resolution needed."]
