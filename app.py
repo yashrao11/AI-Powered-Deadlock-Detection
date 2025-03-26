@@ -9,7 +9,7 @@ SRC_DIR = os.path.join(CURRENT_DIR, "src")
 sys.path.insert(0, SRC_DIR)  # Ensure Python can find src
 
 # Now import modules correctly
-
+from deadlock import detect_all_deadlocks
 from visualization import draw_graph
 
 def parse_edges(edges_input):
