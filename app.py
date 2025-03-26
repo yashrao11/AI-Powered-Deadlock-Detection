@@ -1,6 +1,6 @@
 import streamlit as st
 import networkx as nx
-from src.deadlock import detect_deadlock
+from src.deadlock import detect_all_deadlocks
 from src.visualization import draw_graph
 
 def parse_edges(edges_input):
@@ -24,7 +24,7 @@ def main():
     st.write("### Enter process-resource relationships:")
     edges_input = st.text_input("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", "")
 
-    if st.button("Detect Deadlock"):
+    if st.button("Detect Deadlocks"):
         if not edges_input.strip():
             st.error("Please enter at least one process-resource relationship.")
             return
@@ -38,13 +38,15 @@ def main():
             st.error("Invalid input format. Please enter in the correct format.")
             return
 
-        # Detect Deadlock
-        deadlock_detected, cycles = detect_deadlock(edges)
+        # Detect Deadlocks
+        deadlocks = detect_all_deadlocks(edges)
 
-        if deadlock_detected:
-            st.error(f"⚠️ Deadlock detected! Cycle found: {cycles}")
+        if deadlocks:
+            st.error(f"⚠️ Deadlocks detected! {len(deadlocks)} cycles found:")
+            for i, cycle in enumerate(deadlocks, 1):
+                st.write(f"🔴 Cycle {i}: {cycle}")
         else:
-            st.success("✅ No deadlock detected")
+            st.success("✅ No deadlocks detected")
 
         # Render Graph
         try:
