@@ -1,34 +1,37 @@
 import streamlit as st
 import networkx as nx
-from src.deadlock import detect_deadlock
+from src.deadlock import detect_deadlock, suggest_deadlock_solution
 from src.visualization import draw_graph
 
 def parse_edges(edges_input):
     """Parses input edges in both 'a b, b c' and 'ab, bc' formats."""
     edges = []
+    # Remove newlines and split by comma
     for edge in edges_input.replace("\n", "").split(","):
         edge = edge.strip()
+        if not edge:
+            continue
         if " " in edge:
             nodes = edge.split()  # Handles 'a b' format
         else:
-            nodes = [edge[:len(edge)//2], edge[len(edge)//2:]]  # Handles 'ab' format
-        
+            # If no space, assume the first half is the first node and the rest is the second node.
+            mid = len(edge) // 2
+            nodes = [edge[:mid], edge[mid:]]
         if len(nodes) == 2 and nodes[0] and nodes[1]:
             edges.append(tuple(nodes))
-    
     return edges
 
 def main():
     st.title("🛠️ AI-Powered Deadlock Detection")
-
     st.write("### Enter process-resource relationships:")
+
     edges_input = st.text_area("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", height=200)
 
     if st.button("Detect Deadlock"):
         if not edges_input.strip():
             st.error("Please enter at least one process-resource relationship.")
             return
-        
+
         try:
             edges = parse_edges(edges_input)
             if not edges:
@@ -38,11 +41,18 @@ def main():
             st.error("Invalid input format. Please enter in the correct format.")
             return
 
-        # Detect Deadlock
+        # Detect deadlock
         deadlock_detected, cycles = detect_deadlock(edges)
 
         if deadlock_detected:
-            st.error(f"⚠️ Deadlock detected! Cycle found: {cycles}")
+            st.error("⚠️ Deadlock detected!")
+            # Display each cycle
+            for idx, cycle in enumerate(cycles, start=1):
+                st.write(f"Cycle {idx}: {cycle}")
+            # Optionally, display a suggestion for resolution
+            suggestion = suggest_deadlock_solution(cycles)
+            if suggestion:
+                st.info(f"Suggested Fix: {suggestion}")
         else:
             st.success("✅ No deadlock detected")
 
