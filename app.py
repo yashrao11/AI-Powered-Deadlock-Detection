@@ -8,7 +8,7 @@ sys.path.append(SRC_PATH)
 
 try:
     # Import the deadlock detection module
-    from deadlock_detection import detect_all_deadlocks
+    from deadlock import detect_all_deadlocks
     from visualization import draw_graph
 except ImportError as e:
     st.error(f"🚨 Import Error: {e}")
