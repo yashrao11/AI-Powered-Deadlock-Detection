@@ -1,22 +1,21 @@
 import networkx as nx
 
 def detect_deadlock(edges):
-    """
-    Detects deadlocks in a resource allocation graph.
+    graph = nx.DiGraph()  # Ensure it's a directed graph
 
-    :param edges: List of tuples representing process-resource relationships.
-    :return: Tuple (deadlock_detected, cycles) where:
-             - deadlock_detected (bool): True if a cycle (deadlock) is found.
-             - cycles (list): List of cycles detected in the graph.
-    """
-    graph = nx.DiGraph()  # Create a directed graph
-    graph.add_edges_from(edges)  # Add edges from the input list
+    for edge in edges:
+        u, v = edge
+        if u == v:
+            return True, [[u, v]]  # Self-loop is a deadlock
+
+        graph.add_edge(u, v)
 
     try:
-        cycle = nx.find_cycle(graph, orientation="original")  # Detect cycles
+        cycle = nx.find_cycle(graph, orientation="original")
         return True, cycle  # Deadlock detected
     except nx.NetworkXNoCycle:
         return False, []  # No deadlock
+
 
 def suggest_deadlock_solution(cycles):
     """
