@@ -1,7 +1,12 @@
-import streamlit as st
-import networkx as nx
-from src.deadlock import detect_all_deadlocks
-from src.visualization import draw_graph
+import sys
+import os
+
+# Ensure src directory is in Python path
+sys.path.append(os.path.abspath("src"))
+
+# Now import modules
+from deadlock import detect_all_deadlocks
+from visualization import draw_graph
 
 def parse_edges(edges_input):
     """Parses input edges in both 'a b, b c' and 'ab, bc' formats."""
