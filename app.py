@@ -1,29 +1,28 @@
 import sys
 import os
 import streamlit as st
-import streamlit.components.v1 as components
 
-# Manually set the correct path for src
-SRC_DIR = r"C:\Users\DC\Desktop\ONgoing Stuff\CSE316 - OPERATING SYSTEMS\PROJECT\AI-Powered-Deadlock-Detection\src"
-sys.path.append(SRC_DIR)  # Add src to Python path
+# Ensure the correct path is in Python's module search path
+SRC_PATH = os.path.abspath("C:/Users/DC/Desktop/ONgoing Stuff/CSE316 - OPERATING SYSTEMS/PROJECT/AI-Powered-Deadlock-Detection/src")
+sys.path.append(SRC_PATH)
 
-# Now import modules
 try:
-    from deadlock import detect_all_deadlocks
+    # Import the deadlock detection module
+    from deadlock_detection import detect_all_deadlocks
     from visualization import draw_graph
 except ImportError as e:
-    st.error(f"🚨 Import Error: {e}\n❌ Check if 'src/' exists and contains 'deadlock.py'.")
+    st.error(f"🚨 Import Error: {e}")
     st.stop()
 
 def parse_edges(edges_input):
-    """Parses input edges in both 'A B, B C' and 'AB, BC' formats."""
+    """Parses input edges in both 'P1 R1, P2 R2' and 'P1R1, P2R2' formats."""
     edges = []
     for edge in edges_input.split(","):
         edge = edge.strip()
         if " " in edge:
-            nodes = edge.split()  # Handles 'A B' format
+            nodes = edge.split()  # Handles 'P1 R1' format
         else:
-            nodes = [edge[:len(edge)//2], edge[len(edge)//2:]]  # Handles 'AB' format
+            nodes = [edge[:len(edge)//2], edge[len(edge)//2:]]  # Handles 'P1R1' format
         
         if len(nodes) == 2 and nodes[0] and nodes[1]:
             edges.append(tuple(nodes))
@@ -34,7 +33,7 @@ def main():
     st.title("🛠️ AI-Powered Deadlock Detection")
 
     st.write("### Enter process-resource relationships:")
-    edges_input = st.text_input("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", "")
+    edges_input = st.text_area("Enter edges (format: 'P1 R1, P2 R2' or 'P1R1, P2R2')", "")
 
     if st.button("Detect Deadlocks"):
         if not edges_input.strip():
@@ -51,19 +50,23 @@ def main():
             return
 
         # Detect Deadlocks
-        deadlocks = detect_all_deadlocks(edges)
+        try:
+            deadlocks = detect_all_deadlocks(edges)
 
-        if deadlocks:
-            st.error(f"⚠️ Deadlocks detected! {len(deadlocks)} cycles found:")
-            for i, cycle in enumerate(deadlocks, 1):
-                st.write(f"🔴 Cycle {i}: {cycle}")
-        else:
-            st.success("✅ No deadlocks detected")
+            if deadlocks:
+                st.error(f"⚠️ Deadlocks detected! {len(deadlocks)} cycles found:")
+                for i, cycle in enumerate(deadlocks, 1):
+                    st.write(f"🔴 Cycle {i}: {cycle}")
+            else:
+                st.success("✅ No deadlocks detected")
+
+        except Exception as e:
+            st.error(f"❌ Error in deadlock detection: {e}")
 
         # Render Graph
         try:
             output_html = draw_graph(edges)
-            components.html(output_html, height=600, scrolling=True)
+            st.components.v1.html(output_html, height=600, scrolling=True)
         except Exception as e:
             st.error(f"❌ An error occurred while rendering the graph: {e}")
 
