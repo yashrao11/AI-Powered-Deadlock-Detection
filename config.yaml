@@ -1,0 +1,10 @@
+# config.yaml
+paths:
+  tesseract:
+    windows: 'C:/Program Files/Tesseract-OCR/tesseract.exe'
+    linux: '/usr/bin/tesseract'
+    mac: '/usr/local/bin/tesseract'
+
+ai:
+  sequence_length: 1
+  num_features: 5
